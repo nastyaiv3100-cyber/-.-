@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>grmg</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --hero-input-speed: 2.6;
+
+      /* ✅ НОВЫЙ ФОН */
+      --bg-image: url("https://img.genially.com/684ea2da1b51060014c50e97/d8e85def-788c-434d-bcf5-d40e6fe8f888.png");
+      --bg-overlay: rgba(0, 0, 0, 0.0);
+
+      /* ФОН КАРТОЧКИ ЗАДАНИЯ */
+      --task-card-bg: url("https://img.genially.com/684ea2da1b51060014c50e97/261b9824-4047-4748-bd1c-e7a8e23c4e0e.jpeg");
+
+      /* ✅ НЕЖНО-РОЗОВАЯ ТЕМА */
+      --pink-1: #ffd4e5;
+      --pink-2: #ffb8d4;
+      --pink-3: #ff7fb0;
+      --pink-4: #ff4f95;
+
+      --hud-bg: rgba(255, 210, 230, 0.35);
+      --hud-border: rgba(255, 255, 255, 0.35);
+      --hud-text: #fff7fb;
+
+      --accent: var(--pink-3);
+      --accent-strong: var(--pink-4);
+    }
+
+    html, body{
+      width:100%; height:100%;
+      overflow:hidden;
+      font-family:"Roboto Condensed", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:#000;
+    }
+    body{ margin:0; display:flex; align-items:center; justify-content:center; }
+    *{ box-sizing:border-box; margin:0; padding:0; }
+
+    #game{
+      position:relative;
+      width:100vw; height:100vh;
+      background:
+        linear-gradient(var(--bg-overlay), var(--bg-overlay)),
+        var(--bg-image) center/cover no-repeat;
+      overflow:hidden;
+      color:#fff;
+      font-size:20px;
+      outline:none;
+    }
+
+    /* ===== HUD ===== */
+    .hud{
+      position:absolute;
+      top:12px;
+      left:50%;
+      transform:translateX(-50%);
+      display:flex;
+      gap:14px;
+      padding:10px 14px;
+      background: var(--hud-bg);
+      border: 1px solid var(--hud-border);
+      border-radius:999px;
+      backdrop-filter: blur(10px);
+      box-shadow:0 10px 30px rgba(0,0,0,0.25);
+      align-items:center;
+      z-index:50;
+      font-size:18px;
+      color: var(--hud-text);
+    }
+    .hud-item{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      text-shadow:0 1px 3px rgba(0,0,0,0.55);
+    }
+    .hud-label{ opacity:.92; }
+    .hud-value{
+      font-weight:900;
+      color:#fff;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    /* ✅ ПРОГРЕСС-БАР */
+    .progress-wrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .bar{
+      width: 220px;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.22);
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,0.28);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+    }
+    .bar > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--pink-2), var(--pink-4));
+      border-radius: 999px;
+      box-shadow: 0 0 16px rgba(255, 120, 175, 0.55);
+      transition: width .25s ease;
+    }
+
+    /* ===== ГЕРОЙ ===== */
+    #hero{
+      position:absolute;
+      width:160px;
+      height:190px;
+
+      /* ✅ НОВЫЙ ПЕРСОНАЖ */
+      background:url("https://img.genially.com/684ea2da1b51060014c50e97/dd62aa0c-fbc5-4ce8-b443-68d1b5fcc4e8.png") center/contain no-repeat;
+
+      transform-origin:center center;
+      transition:transform .12s ease-out;
+      z-index:5;
+      filter:drop-shadow(0 12px 20px rgba(0,0,0,0.45));
+    }
+
+    @keyframes wiggle{
+      0%,100%{ transform:translateX(0) scale(var(--hero-scale,1)); }
+      25%{ transform:translateX(-8px) rotate(-5deg) scale(var(--hero-scale,1)); }
+      50%{ transform:translateX(6px) rotate(4deg) scale(var(--hero-scale,1)); }
+      75%{ transform:translateX(-4px) rotate(-3deg) scale(var(--hero-scale,1)); }
+    }
+    .hero-wiggle{ animation:wiggle .6s ease; }
+
+    /* ===== ОБЪЕКТЫ ===== */
+    .item,.candy,.bomb{
+      position:absolute;
+      cursor:pointer;
+      transition:transform .25s ease, opacity .25s ease, filter .2s ease;
+      filter:drop-shadow(0 8px 14px rgba(0,0,0,0.4));
+      z-index:10;
+      background-repeat:no-repeat;
+      background-position:center;
+    }
+
+    /* нормализация размеров PNG */
+    .item{ width:78px; height:78px; }
+    .candy{ width:70px; height:70px; }
+    .bomb{ width:130px; height:130px; }
+
+    /* ✅ НОВЫЕ “СЕРДЦА” */
+    .item-type-1{
+      background-image:url("https://img.genially.com/684ea2da1b51060014c50e97/4d1f01fd-30cf-4c17-9456-9177e78273bc.png");
+      background-size:82% 82%;
+    }
+    .item-type-2{
+      background-image:url("https://img.genially.com/684ea2da1b51060014c50e97/4fd829ec-c34e-42e6-8233-833445b3e56a.png");
+      background-size:82% 82%;
+    }
+    .item-type-3{
+      background-image:url("https://img.genially.com/684ea2da1b51060014c50e97/2a3daf0b-37d1-4274-a722-548e6200c839.png");
+      background-size:82% 82%;
+    }
+
+    /* ✅ ПИСЬМО-БОНУС */
+    .candy{
+      background-image:url("https://img.genially.com/684ea2da1b51060014c50e97/ce1c1977-9c73-42c7-84d8-ebb7e7c4a9b9.png");
+      background-size:82% 82%;
+    }
+
+    /* ✅ ГРОЗОВОЕ ОБЛАКО */
+    .bomb{
+      background-image:url("https://img.genially.com/684ea2da1b51060014c50e97/fd09a53e-177d-47b1-a552-cacd3874ce31.png");
+      background-size:80% 80%;
+    }
+
+    .nearby{
+      filter:
+        drop-shadow(0 0 5px rgba(255, 200, 225, 0.95))
+        drop-shadow(0 0 14px rgba(255, 120, 175, 0.75));
+      transform:translateZ(0);
+    }
+
+    .gold-pop{
+      position:absolute;
+      width:90px; height:90px;
+      pointer-events:none;
+      border-radius:50%;
+      background: radial-gradient(circle,
+        rgba(255,255,255,0.95),
+        rgba(255,160,205,0.22) 55%,
+        transparent 70%);
+      opacity:0;
+      transform:scale(.4);
+      animation:pop .6s ease-out forwards;
+      mix-blend-mode:screen;
+      z-index:40;
+    }
+    @keyframes pop{
+      0%{ opacity:0; transform:scale(.2); }
+      20%{ opacity:1; transform:scale(1.1); }
+      60%{ opacity:.85; transform:scale(.9); }
+      100%{ opacity:0; transform:scale(1.35); }
+    }
+
+    .floating-score{
+      position:absolute;
+      color:#fff;
+      font-size:24px;
+      font-weight:900;
+      text-shadow:0 0 10px rgba(0,0,0,0.65);
+      pointer-events:none;
+      animation:floatScore 1s ease-out forwards;
+      z-index:40;
+    }
+    @keyframes floatScore{
+      0%{ opacity:0; transform:translateY(10px) scale(.8); }
+      20%{ opacity:1; transform:translateY(0) scale(1); }
+      100%{ opacity:0; transform:translateY(-40px) scale(1.05); }
+    }
+
+    /* ===== Карточка задания ===== */
+    .modal-backdrop{
+      position:absolute;
+      inset:0;
+      background:radial-gradient(circle at center, rgba(255,180,210,0.25), rgba(0,0,0,0.75));
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:100;
+    }
+    .modal-backdrop.active{ display:flex; }
+
+    .modal-window{
+      position:relative;
+      width:min(560px, 92vw);
+      padding:26px 34px 22px;
+      background: var(--task-card-bg) center/cover no-repeat;
+      border-radius:24px;
+      box-shadow:0 25px 50px rgba(0,0,0,0.65);
+      color:#1e1b14;
+      overflow:hidden;
+      font-size:20px;
+      border: 2px solid rgba(255, 180, 210, 0.55);
+    }
+    .modal-window::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:rgba(255,255,255,0.68);
+      backdrop-filter: blur(2px);
+      z-index:0;
+    }
+    .modal-window > *{ position:relative; z-index:1; }
+
+    .modal-question{
+      font-size:22px;
+      line-height:1.25;
+      margin:0 auto 18px;
+      text-align:left;
+      max-width:520px;
+      color:#1e1b14;
+      white-space: pre-wrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .modal-question.mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      letter-spacing: 0;
+    }
+
+    .modal-actions{ display:flex; justify-content:center; }
+
+    /* ===== Кнопки (нежно-розовые) ===== */
+    .btn-primary{
+      border:none;
+      border-radius:999px;
+      padding:10px 26px;
+      font-size:20px;
+      font-weight:900;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      cursor:pointer;
+      background: linear-gradient(135deg, var(--pink-1), var(--pink-4));
+      box-shadow:0 14px 30px rgba(255, 90, 160, 0.35);
+      color:#4a0f2a;
+      transition:transform .15s ease, box-shadow .15s ease;
+      font-family:"Roboto Condensed", sans-serif;
+      border:1px solid rgba(255,255,255,0.45);
+    }
+    .btn-primary:hover{
+      transform:translateY(-2px);
+      box-shadow:0 18px 40px rgba(255, 90, 160, 0.45);
+    }
+
+    /* ===== Оверлеи (старт и конец) ===== */
+    .overlay{
+      position:absolute;
+      inset:0;
+      background: rgba(255, 200, 225, 0.18);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:120;
+      backdrop-filter: blur(6px);
+    }
+    .overlay.active{ display:flex; }
+
+    .overlay-content{
+      text-align:center;
+      padding:28px 30px 24px;
+      border-radius:22px;
+      background: radial-gradient(circle at top,
+        rgba(255,255,255,0.32),
+        rgba(255,170,205,0.14));
+      border: 1px solid rgba(255,255,255,0.45);
+      box-shadow:0 30px 70px rgba(0,0,0,0.35);
+      min-width:min(420px, 92vw);
+      max-width:760px;
+      font-family:"Roboto Condensed", sans-serif;
+    }
+
+    .overlay-title{
+      font-size:28px;
+      font-weight:900;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      margin-bottom:10px;
+      color:#fff;
+      text-shadow:0 0 18px rgba(255, 70, 145, 0.55);
+    }
+    .overlay-sub{
+      font-size:20px;
+      line-height:1.25;
+      margin-bottom:18px;
+      opacity:1;
+      color:#fff;
+      white-space:pre-line;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
+
+    /* Салют-конфетти (оставляем, но делаем нежно-розовым) */
+    .confetti{
+      position:absolute;
+      width:12px;
+      height:22px;
+      border-radius:4px;
+      opacity:0;
+      pointer-events:none;
+      animation:confetti 3s ease-out infinite;
+      z-index:115;
+      box-shadow:0 0 16px rgba(255, 120, 175, 0.55);
+      background: linear-gradient(135deg, var(--pink-2), var(--pink-4));
+    }
+    .confetti:nth-child(3n){
+      background: linear-gradient(135deg, #fff, var(--pink-3));
+    }
+    .confetti:nth-child(5n){
+      background: linear-gradient(135deg, var(--pink-1), #ff5fa7);
+    }
+    @keyframes confetti{
+      0%{ opacity:0; transform:translate3d(0,-100px,0) rotateZ(0deg) scale(0.3); }
+      10%{ opacity:1; transform:translate3d(0,-50px,0) rotateZ(60deg) scale(1); }
+      30%{ opacity:1; transform:translate3d(0,30vh,0) rotateZ(180deg) scale(1.1); }
+      60%{ opacity:1; transform:translate3d(0,70vh,0) rotateZ(300deg) scale(1); }
+      100%{ opacity:0; transform:translate3d(0,110vh,0) rotateZ(450deg) scale(0.5); }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="game" tabindex="0">
+    <div class="hud">
+      <div class="hud-item">
+        <span class="hud-label">Баллы:</span>
+        <span id="score" class="hud-value">0</span>
+      </div>
+
+      <div class="hud-item progress-wrap">
+        <span class="hud-label">Собрано:</span>
+        <span id="found" class="hud-value">0 / 10</span>
+        <span class="bar"><i id="barFill"></i></span>
+      </div>
+    </div>
+
+    <div id="hero"></div>
+
+    <!-- ✅ Новый стартовый фидбек -->
+    <div id="startOverlay" class="overlay active">
+      <div class="overlay-content">
+        <div class="overlay-title">ПОМОГИ СОБРАТЬ ВАЛЕНТИНКИ!</div>
+        <div class="overlay-sub">Собирай сердца 💗
+Остерегайся грозового облака ⛈
+Письма будут приносить тебе бонус ✉️</div>
+        <button id="btnPlay" class="btn-primary">Играть</button>
+      </div>
+    </div>
+
+    <div id="taskModal" class="modal-backdrop">
+      <div class="modal-window">
+        <div id="modalQuestion" class="modal-question"></div>
+        <div class="modal-actions">
+          <button id="btnNextTask" class="btn-primary">Далее</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ Новый финальный фидбек -->
+    <div id="gameOverOverlay" class="overlay">
+      <div class="overlay-content">
+        <div class="overlay-title" id="overlayTitle">ПОЗДРАВЛЯЮ!</div>
+        <div class="overlay-sub" id="overlaySub">Ты собрал(а) все валентинки! 💖</div>
+        <button id="btnRestart" class="btn-primary">Начать заново?</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const gameEl = document.getElementById('game');
+    const heroEl = document.getElementById('hero');
+    const scoreEl = document.getElementById('score');
+    const foundEl = document.getElementById('found');
+    const barFill = document.getElementById('barFill');
+
+    const startOverlay = document.getElementById('startOverlay');
+    const btnPlay = document.getElementById('btnPlay');
+
+    const taskModal = document.getElementById('taskModal');
+    const modalQuestionEl = document.getElementById('modalQuestion');
+    const btnNextTask = document.getElementById('btnNextTask');
+
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlaySub = document.getElementById('overlaySub');
+    const btnRestart = document.getElementById('btnRestart');
+
+    const HERO_BASE_SIZE = { w: 160, h: 190 };
+    let HERO_INPUT_SPEED = 2.6;
+
+    const HERO_GROWTH_PER_COLLECT = 0.05;
+    const NUM_MAIN_ITEMS = 10;
+    const NUM_CANDIES = 3; // письма
+    const NUM_BOMBS = 2;   // облака
+
+    const SPAWN_BATCH_MIN = 2;
+    const SPAWN_BATCH_MAX = 3;
+    const SPAWN_INTERVAL = 1200;
+
+    const NEARBY_DISTANCE = 120;
+
+    let hero = { x: 200, y: 200, scale: 1, flipped: false };
+    let keys = { ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false };
+
+    let items = [];
+    let candies = [];
+    let bombs = [];
+
+    let pendingMain = NUM_MAIN_ITEMS;
+    let pendingCandies = NUM_CANDIES;
+    let pendingBombs = NUM_BOMBS;
+    let spawnTimer = null;
+
+    let score = 0;
+    let foundCount = 0;
+    let isWin = false;
+    let modalOpen = false;
+
+    const TASK_CARDS = [
+`Выполните вычисления.
+
+45 * 2  = ____      80 : 5   = ____
+18 * 4  = ____      85 : 17  = ____
+96 : 3  = ____      58 : 29  = ____`,
+
+`Решите задачу.
+
+В цветочном магазине было 95 тюльпанов.
+Продавец сделал из них 12 букетов, по 7 тюльпанов в каждом букете.
+Сколько тюльпанов осталось?`,
+
+`На 7 одинаковых костюмов израсходовали 28 м ткани.
+Сколько таких костюмов можно сшить из 52 м такой же ткани?`,
+
+`Выполните вычисления.
+
+48 - 32 : 4 * 5 =
+27 : (11 - 2) * 2 =`,
+
+`Марина потратила половину имевшихся у нее денег,
+после чего у нее осталось 42 рубля.
+Сколько денег было у Марины?`,
+
+`Выполните вычисления.
+
+16 * 3  = ____      90 : 5   = ____
+49 * 2  = ____      75 : 25  = ____
+84 : 4  = ____      36 : 12  = ____`,
+
+`Решите задачу.
+
+Стекольщику надо вставить 96 стекол.
+Он уже вставил стекла в 14 окон, по 3 стекла в каждое.
+Сколько стекол ему осталось вставить?`,
+
+`На 5 одинаковых пальто расходуют 15 м ткани.
+Сколько таких пальто можно сшить из 42 м такой же ткани?`,
+
+`Выполните вычисления.
+
+32 + 8 * 5 : 4 =
+(84 - 20) : 8 * 7 =`,
+
+`Длина всех сторон шестиугольника равна.
+Его периметр 18 см.
+Чему равна длина одной его стороны?`
+    ];
+
+    /* ===== ЗВУКИ (WebAudio) ===== */
+    let audioCtx = null;
+    function ensureAudio(){
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function beep({freq=440, dur=0.08, type='sine', vol=0.12, slideTo=null}={}){
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+      if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
+    }
+    const SFX = {
+      start(){ beep({freq:523, dur:0.07, type:'triangle', vol:0.10}); setTimeout(()=>beep({freq:659,dur:0.07,type:'triangle',vol:0.10}),80); },
+      card(){ beep({freq:440, dur:0.06, type:'triangle', vol:0.10}); },
+      collect(){ beep({freq:740, dur:0.07, type:'triangle', vol:0.12}); setTimeout(()=>beep({freq:880,dur:0.08,type:'triangle',vol:0.12}),70); },
+      bonus(){ beep({freq:740, dur:0.06, type:'sine', vol:0.12}); setTimeout(()=>beep({freq:988,dur:0.06,type:'sine',vol:0.12}),60); setTimeout(()=>beep({freq:1175,dur:0.08,type:'sine',vol:0.12}),120); },
+      bomb(){ beep({freq:160, dur:0.16, type:'sawtooth', vol:0.16, slideTo:60}); },
+      win(){ beep({freq:523, dur:0.08, type:'triangle', vol:0.12}); setTimeout(()=>beep({freq:659,dur:0.08,type:'triangle',vol:0.12}),90); setTimeout(()=>beep({freq:784,dur:0.10,type:'triangle',vol:0.12}),180); }
+    };
+
+    let freezeUntil = 0;
+    let lastMove = { x: 0, y: 1 };
+    function freeze(ms=240){
+      freezeUntil = Date.now() + ms;
+      keys.ArrowUp = keys.ArrowDown = keys.ArrowLeft = keys.ArrowRight = false;
+    }
+    function knockback(px=10){
+      const w = gameEl.clientWidth;
+      const h = gameEl.clientHeight;
+      const heroW = HERO_BASE_SIZE.w * hero.scale;
+      const heroH = HERO_BASE_SIZE.h * hero.scale;
+      const margin = 5;
+
+      hero.x -= lastMove.x * px;
+      hero.y -= lastMove.y * px;
+
+      if (hero.x <= margin) hero.x = margin;
+      else if (hero.x + heroW >= w - margin) hero.x = w - margin - heroW;
+
+      if (hero.y <= 60) hero.y = 60;
+      else if (hero.y + heroH >= h - margin) hero.y = h - margin - heroH;
+    }
+
+    function rand(min, max){ return Math.random() * (max - min) + min; }
+    function distance(ax, ay, bx, by){
+      const dx = ax - bx, dy = ay - by;
+      return Math.sqrt(dx*dx + dy*dy);
+    }
+    function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh){
+      return !(ax + aw < bx || ax > bx + bw || ay + ah < by || ay > by + bh);
+    }
+    function anyOverlap(x, y, size){
+      const all = [
+        ...items.map(i => ({ x: i.x, y: i.y, w: i.size, h: i.size })),
+        ...candies.map(c => ({ x: c.x, y: c.y, w: c.size, h: c.size })),
+        ...bombs.map(b => ({ x: b.x, y: b.y, w: b.size, h: b.size }))
+      ];
+      for (const o of all){
+        if (rectsOverlap(x, y, size, size, o.x, o.y, o.w, o.h)) return true;
+      }
+      return false;
+    }
+    function findNonOverlappingPosition(size){
+      const w = gameEl.clientWidth;
+      const h = gameEl.clientHeight;
+      const MAX_TRIES = 250;
+      for (let i=0;i<MAX_TRIES;i++){
+        const x = rand(40, w - size - 40);
+        const y = rand(80, h - size - 80);
+        if (!anyOverlap(x, y, size)){
+          const heroCx = hero.x + HERO_BASE_SIZE.w / 2;
+          const heroCy = hero.y + HERO_BASE_SIZE.h / 2;
+          const objCx = x + size / 2;
+          const objCy = y + size / 2;
+          if (distance(heroCx, heroCy, objCx, objCy) > NEARBY_DISTANCE + 30) return {x,y};
+        }
+      }
+      return { x: rand(40, w - size - 40), y: rand(80, h - size - 80) };
+    }
+
+    function clearObjects(){
+      [...document.querySelectorAll('.item, .candy, .bomb, .gold-pop, .floating-score, .confetti')]
+        .forEach(el => el.remove());
+      items = []; candies = []; bombs = [];
+    }
+
+    function updateHUD(){
+      scoreEl.textContent = score;
+      foundEl.textContent = foundCount + " / " + NUM_MAIN_ITEMS;
+      const pct = Math.max(0, Math.min(100, (foundCount / NUM_MAIN_ITEMS) * 100));
+      barFill.style.width = pct + "%";
+    }
+
+    function updateHeroVisual(){
+      heroEl.style.left = hero.x + "px";
+      heroEl.style.top = hero.y + "px";
+      heroEl.style.setProperty("--hero-scale", hero.scale);
+      const scaleX = hero.flipped ? -hero.scale : hero.scale;
+      heroEl.style.transform = `scale(${scaleX}, ${hero.scale})`;
+    }
+
+    function spawnBatch(){
+      if (pendingMain<=0 && pendingCandies<=0 && pendingBombs<=0){
+        clearInterval(spawnTimer);
+        spawnTimer = null;
+        return;
+      }
+      let toSpawn = Math.floor(rand(SPAWN_BATCH_MIN, SPAWN_BATCH_MAX + 1));
+      while (toSpawn>0 && (pendingMain>0 || pendingCandies>0 || pendingBombs>0)){
+        const choices = [];
+        if (pendingMain>0) choices.push("main");
+        if (pendingCandies>0) choices.push("candy");
+        if (pendingBombs>0) choices.push("bomb");
+
+        const type = choices[Math.floor(Math.random()*choices.length)];
+        if (type==="main" && pendingMain>0){ spawnMainItem(NUM_MAIN_ITEMS - pendingMain); pendingMain--; }
+        else if (type==="candy" && pendingCandies>0){ spawnCandy(NUM_CANDIES - pendingCandies); pendingCandies--; }
+        else if (type==="bomb" && pendingBombs>0){ spawnBomb(NUM_BOMBS - pendingBombs); pendingBombs--; }
+        toSpawn--;
+      }
+    }
+
+    function spawnMainItem(index){
+      const id = "item-" + index;
+      const type = (index % 3) + 1;
+      const size = 78;
+      const pos = findNonOverlappingPosition(size);
+
+      const el = document.createElement("div");
+      el.classList.add("item", `item-type-${type}`);
+      el.style.left = pos.x + "px";
+      el.style.top = pos.y + "px";
+
+      el.addEventListener("click", () => {
+        if (isWin || modalOpen) return;
+        const obj = items.find(it => it.id === id);
+        if (!obj || obj.collected) return;
+        if (!obj.active) return;
+        openTaskCard(obj.orderIndex);
+      });
+
+      gameEl.appendChild(el);
+      items.push({ id, x: pos.x, y: pos.y, size, el, collected:false, active:false, orderIndex:index });
+    }
+
+    function spawnCandy(index){
+      const id = "candy-" + index;
+      const size = 70;
+      const pos = findNonOverlappingPosition(size);
+
+      const el = document.createElement("div");
+      el.classList.add("candy");
+      el.style.left = pos.x + "px";
+      el.style.top = pos.y + "px";
+
+      gameEl.appendChild(el);
+      candies.push({ id, x: pos.x, y: pos.y, size, el, eaten:false });
+    }
+
+    function spawnBomb(index){
+      const id = "bomb-" + index;
+      const size = 130;
+      const pos = findNonOverlappingPosition(size);
+
+      const el = document.createElement("div");
+      el.classList.add("bomb");
+      el.style.left = pos.x + "px";
+      el.style.top = pos.y + "px";
+
+      gameEl.appendChild(el);
+      bombs.push({ id, x: pos.x, y: pos.y, size, el, exploded:false });
+    }
+
+    function updateNearby(){
+      const heroCenterX = hero.x + HERO_BASE_SIZE.w * hero.scale / 2;
+      const heroCenterY = hero.y + HERO_BASE_SIZE.h * hero.scale / 2;
+
+      items.forEach(it => {
+        if (it.collected){ it.active=false; it.el.classList.remove("nearby"); return; }
+        const cx = it.x + it.size/2, cy = it.y + it.size/2;
+        const isNear = distance(heroCenterX, heroCenterY, cx, cy) <= NEARBY_DISTANCE;
+        it.active = isNear;
+        it.el.classList.toggle("nearby", isNear);
+      });
+
+      candies.forEach(c => {
+        const cx = c.x + c.size/2, cy = c.y + c.size/2;
+        const isNear = distance(heroCenterX, heroCenterY, cx, cy) <= NEARBY_DISTANCE;
+        c.el.classList.toggle("nearby", isNear && !c.eaten);
+      });
+
+      bombs.forEach(b => {
+        const cx = b.x + b.size/2, cy = b.y + b.size/2;
+        const isNear = distance(heroCenterX, heroCenterY, cx, cy) <= NEARBY_DISTANCE;
+        b.el.classList.toggle("nearby", isNear && !b.exploded);
+      });
+    }
+
+    function moveHeroByInput(){
+      if (modalOpen) return;
+      if (Date.now() < freezeUntil) return;
+
+      let dx=0, dy=0;
+      if (keys.ArrowUp) dy -= 1;
+      if (keys.ArrowDown) dy += 1;
+      if (keys.ArrowLeft) dx -= 1;
+      if (keys.ArrowRight) dx += 1;
+      if (dx===0 && dy===0) return;
+
+      const len = Math.hypot(dx, dy) || 1;
+      const ndx = dx/len, ndy = dy/len;
+      lastMove.x = ndx; lastMove.y = ndy;
+
+      const stepX = ndx * HERO_INPUT_SPEED;
+      const stepY = ndy * HERO_INPUT_SPEED;
+
+      if (stepX < 0) hero.flipped = true;
+      if (stepX > 0) hero.flipped = false;
+
+      const w = gameEl.clientWidth, h = gameEl.clientHeight;
+      const heroW = HERO_BASE_SIZE.w * hero.scale;
+      const heroH = HERO_BASE_SIZE.h * hero.scale;
+      const margin = 5;
+
+      hero.x += stepX; hero.y += stepY;
+
+      if (hero.x <= margin) hero.x = margin;
+      else if (hero.x + heroW >= w - margin) hero.x = w - margin - heroW;
+
+      if (hero.y <= 60) hero.y = 60;
+      else if (hero.y + heroH >= h - margin) hero.y = h - margin - heroH;
+    }
+
+    function showGoldPop(cx, cy){
+      const pop = document.createElement("div");
+      pop.className = "gold-pop";
+      pop.style.left = (cx - 45) + "px";
+      pop.style.top = (cy - 45) + "px";
+      gameEl.appendChild(pop);
+      setTimeout(()=>pop.remove(), 650);
+    }
+    function showFloatingScore(text, x, y){
+      const fs = document.createElement("div");
+      fs.className = "floating-score";
+      fs.textContent = text;
+      fs.style.left = x + "px";
+      fs.style.top = y + "px";
+      gameEl.appendChild(fs);
+      setTimeout(()=>fs.remove(), 1100);
+    }
+
+    function checkCollisions(){
+      const heroW = HERO_BASE_SIZE.w * hero.scale;
+      const heroH = HERO_BASE_SIZE.h * hero.scale;
+
+      // письма = бонус
+      candies.forEach(c => {
+        if (c.eaten) return;
+        if (rectsOverlap(hero.x, hero.y, heroW, heroH, c.x, c.y, c.size, c.size)){
+          freeze(260); knockback(10); SFX.bonus();
+          c.eaten = true;
+          c.el.style.opacity = "0";
+          c.el.style.transform = "scale(0.3)";
+          setTimeout(()=>c.el.remove(), 250);
+          score += 5;
+          showGoldPop(c.x + c.size/2, c.y + c.size/2);
+          showFloatingScore("+5", c.x + c.size/2, c.y);
+          updateHUD();
+        }
+      });
+
+      // облака = “бомба”
+      bombs.forEach(b => {
+        if (b.exploded) return;
+        if (rectsOverlap(hero.x, hero.y, heroW, heroH, b.x, b.y, b.size, b.size)){
+          freeze(340); knockback(14); SFX.bomb();
+          b.exploded = true;
+          b.el.style.opacity = "0";
+          b.el.style.transform = "scale(0.35)";
+          setTimeout(()=>b.el.remove(), 250);
+          heroEl.classList.remove("hero-wiggle");
+          void heroEl.offsetWidth;
+          heroEl.classList.add("hero-wiggle");
+        }
+      });
+    }
+
+    let pendingCollectIndex = null;
+
+    function openTaskCard(taskIndex){
+      freeze(260); knockback(10);
+      SFX.card();
+
+      pendingCollectIndex = taskIndex;
+
+      const txt = TASK_CARDS.length
+        ? TASK_CARDS[taskIndex % TASK_CARDS.length]
+        : "Добавь задания в массив TASK_CARDS";
+
+      modalQuestionEl.classList.toggle('mono', [0,5].includes(taskIndex));
+      modalQuestionEl.textContent = txt;
+
+      modalOpen = true;
+      taskModal.classList.add("active");
+    }
+
+    function closeTaskCardAndCollect(){
+      taskModal.classList.remove("active");
+      modalOpen = false;
+
+      if (pendingCollectIndex === null) return;
+      const id = "item-" + pendingCollectIndex;
+      const item = items.find(it => it.id === id);
+      if (!item || item.collected){ pendingCollectIndex = null; return; }
+
+      item.collected = true;
+      item.el.style.transform = "scale(0.1)";
+      item.el.style.opacity = "0";
+
+      const cx = item.x + item.size/2;
+      const cy = item.y + item.size/2;
+
+      SFX.collect();
+      showGoldPop(cx, cy);
+      showFloatingScore("+10", cx, cy - 10);
+      setTimeout(()=>item.el.remove(), 250);
+
+      hero.scale += HERO_GROWTH_PER_COLLECT;
+      updateHeroVisual();
+
+      score += 10;
+      foundCount++;
+      updateHUD();
+
+      pendingCollectIndex = null;
+
+      if (foundCount >= NUM_MAIN_ITEMS){
+        isWin = true;
+        overlayTitle.textContent = "УРА! 💕";
+        overlaySub.textContent = "Поздравляю! Ты собрал(а) все валентинки!\nТы молодец ✨";
+        gameOverOverlay.classList.add("active");
+        addConfetti();
+        SFX.win();
+      }
+    }
+
+    function addConfetti(){
+      const count = 170;
+      for (let i=0;i<count;i++){
+        const c = document.createElement("div");
+        c.className = "confetti";
+        c.style.left = rand(0,100) + "%";
+        c.style.top = rand(-20,60) + "%";
+        c.style.animationDelay = (Math.random()*2) + "s";
+        c.style.animationDuration = (2.5 + Math.random()*1.5) + "s";
+        gameEl.appendChild(c);
+      }
+    }
+
+    function initGame(){
+      const cs = getComputedStyle(document.documentElement);
+      HERO_INPUT_SPEED = parseFloat(cs.getPropertyValue("--hero-input-speed")) || 2.6;
+
+      score = 0;
+      foundCount = 0;
+      isWin = false;
+      modalOpen = false;
+      pendingCollectIndex = null;
+      freezeUntil = 0;
+
+      hero.scale = 1;
+      hero.x = gameEl.clientWidth/2 - HERO_BASE_SIZE.w/2;
+      hero.y = gameEl.clientHeight/2 - HERO_BASE_SIZE.h/2;
+      hero.flipped = false;
+      updateHeroVisual();
+
+      document.querySelectorAll(".confetti").forEach(el => el.remove());
+      gameOverOverlay.classList.remove("active");
+
+      clearObjects();
+      pendingMain = NUM_MAIN_ITEMS;
+      pendingCandies = NUM_CANDIES;
+      pendingBombs = NUM_BOMBS;
+
+      updateHUD();
+
+      if (spawnTimer) clearInterval(spawnTimer);
+      spawnTimer = setInterval(spawnBatch, SPAWN_INTERVAL);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function gameLoop(){
+      if (isWin) return;
+      moveHeroByInput();
+      updateHeroVisual();
+      updateNearby();
+      checkCollisions();
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener("keydown", e => {
+      if (e.key in keys){
+        keys[e.key] = true;
+        e.preventDefault();
+      }
+    }, { passive:false });
+
+    window.addEventListener("keyup", e => {
+      if (e.key in keys){
+        keys[e.key] = false;
+        e.preventDefault();
+      }
+    }, { passive:false });
+
+    gameEl.addEventListener("pointerdown", () => { gameEl.focus(); ensureAudio(); });
+
+    btnPlay.addEventListener("click", () => {
+      ensureAudio(); SFX.start();
+      startOverlay.classList.remove("active");
+      initGame();
+      gameEl.focus();
+    });
+
+    btnNextTask.addEventListener("click", () => {
+      ensureAudio();
+      closeTaskCardAndCollect();
+      gameEl.focus();
+    });
+
+    btnRestart.addEventListener("click", () => {
+      ensureAudio();
+      initGame();
+      gameEl.focus();
+    });
+
+    window.addEventListener("resize", () => {
+      if (!startOverlay.classList.contains("active")) initGame();
+    });
+  </script>
+</body>
+</html>
