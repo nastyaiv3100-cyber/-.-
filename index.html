@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>grmg</title>
+  <title>Valentine Game</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
 
@@ -10,12 +10,9 @@
     :root{
       --hero-input-speed: 2.6;
 
-      /* ✅ НОВЫЙ ФОН */
+      /* ✅ ФОН ИГРЫ */
       --bg-image: url("https://img.genially.com/684ea2da1b51060014c50e97/d8e85def-788c-434d-bcf5-d40e6fe8f888.png");
       --bg-overlay: rgba(0, 0, 0, 0.0);
-
-      /* ФОН КАРТОЧКИ ЗАДАНИЯ */
-      --task-card-bg: url("https://img.genially.com/684ea2da1b51060014c50e97/261b9824-4047-4748-bd1c-e7a8e23c4e0e.jpeg");
 
       /* ✅ НЕЖНО-РОЗОВАЯ ТЕМА */
       --pink-1: #ffd4e5;
@@ -26,6 +23,11 @@
       --hud-bg: rgba(255, 210, 230, 0.35);
       --hud-border: rgba(255, 255, 255, 0.35);
       --hud-text: #fff7fb;
+
+      --glass-a: rgba(255,255,255,0.30);
+      --glass-b: rgba(255,255,255,0.16);
+      --glass-stroke: rgba(255,255,255,0.42);
+      --glass-shadow: rgba(0,0,0,0.28);
 
       --accent: var(--pink-3);
       --accent-strong: var(--pink-4);
@@ -52,6 +54,23 @@
       outline:none;
     }
 
+    /* =====================
+       АНИМАЦИИ (FADE + SCALE)
+       ===================== */
+    @keyframes popIn {
+      0%   { opacity: 0; transform: translateY(10px) scale(0.94); filter: blur(2px); }
+      70%  { opacity: 1; transform: translateY(0) scale(1.02); filter: blur(0px); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes softGlow {
+      0%,100% { box-shadow: 0 22px 60px rgba(255,80,150,0.18); }
+      50%     { box-shadow: 0 28px 70px rgba(255,80,150,0.30); }
+    }
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.18); }
+    }
+
     /* ===== HUD ===== */
     .hud{
       position:absolute;
@@ -61,6 +80,7 @@
       display:flex;
       gap:14px;
       padding:10px 14px;
+
       background: var(--hud-bg);
       border: 1px solid var(--hud-border);
       border-radius:999px;
@@ -95,7 +115,7 @@
       gap:10px;
     }
     .bar{
-      width: 220px;
+      width: 240px;
       height: 12px;
       border-radius: 999px;
       background: rgba(255,255,255,0.22);
@@ -118,10 +138,7 @@
       position:absolute;
       width:160px;
       height:190px;
-
-      /* ✅ НОВЫЙ ПЕРСОНАЖ */
       background:url("https://img.genially.com/684ea2da1b51060014c50e97/dd62aa0c-fbc5-4ce8-b443-68d1b5fcc4e8.png") center/contain no-repeat;
-
       transform-origin:center center;
       transition:transform .12s ease-out;
       z-index:5;
@@ -147,35 +164,35 @@
       background-position:center;
     }
 
-    /* нормализация размеров PNG */
-    .item{ width:78px; height:78px; }
-    .candy{ width:70px; height:70px; }
-    .bomb{ width:130px; height:130px; }
+    /* ✅ УВЕЛИЧИЛА ВСЕ ИКОНКИ КРОМЕ БОМБЫ */
+    .item{  width:92px; height:92px; }
+    .candy{ width:84px; height:84px; }
+    .bomb{  width:130px; height:130px; } /* не трогаем */
 
-    /* ✅ НОВЫЕ “СЕРДЦА” */
+    /* ✅ СЕРДЦА */
     .item-type-1{
       background-image:url("https://img.genially.com/684ea2da1b51060014c50e97/4d1f01fd-30cf-4c17-9456-9177e78273bc.png");
-      background-size:82% 82%;
+      background-size:86% 86%;
     }
     .item-type-2{
       background-image:url("https://img.genially.com/684ea2da1b51060014c50e97/4fd829ec-c34e-42e6-8233-833445b3e56a.png");
-      background-size:82% 82%;
+      background-size:86% 86%;
     }
     .item-type-3{
       background-image:url("https://img.genially.com/684ea2da1b51060014c50e97/2a3daf0b-37d1-4274-a722-548e6200c839.png");
-      background-size:82% 82%;
+      background-size:86% 86%;
     }
 
     /* ✅ ПИСЬМО-БОНУС */
     .candy{
       background-image:url("https://img.genially.com/684ea2da1b51060014c50e97/ce1c1977-9c73-42c7-84d8-ebb7e7c4a9b9.png");
-      background-size:82% 82%;
+      background-size:86% 86%;
     }
 
     /* ✅ ГРОЗОВОЕ ОБЛАКО */
     .bomb{
       background-image:url("https://img.genially.com/684ea2da1b51060014c50e97/fd09a53e-177d-47b1-a552-cacd3874ce31.png");
-      background-size:80% 80%;
+      background-size:84% 84%;
     }
 
     .nearby{
@@ -187,7 +204,7 @@
 
     .gold-pop{
       position:absolute;
-      width:90px; height:90px;
+      width:96px; height:96px;
       pointer-events:none;
       border-radius:50%;
       background: radial-gradient(circle,
@@ -223,58 +240,92 @@
       100%{ opacity:0; transform:translateY(-40px) scale(1.05); }
     }
 
-    /* ===== Карточка задания ===== */
-    .modal-backdrop{
+    /* ===== Оверлеи (старт и конец) ===== */
+    .overlay{
       position:absolute;
       inset:0;
-      background:radial-gradient(circle at center, rgba(255,180,210,0.25), rgba(0,0,0,0.75));
+      background: rgba(255, 200, 225, 0.18);
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:100;
+      z-index:120;
+      backdrop-filter: blur(6px);
     }
-    .modal-backdrop.active{ display:flex; }
+    .overlay.active{ display:flex; }
 
-    .modal-window{
-      position:relative;
-      width:min(560px, 92vw);
-      padding:26px 34px 22px;
-      background: var(--task-card-bg) center/cover no-repeat;
-      border-radius:24px;
-      box-shadow:0 25px 50px rgba(0,0,0,0.65);
-      color:#1e1b14;
-      overflow:hidden;
-      font-size:20px;
-      border: 2px solid rgba(255, 180, 210, 0.55);
+    .overlay-content{
+      text-align:center;
+      padding:28px 30px 24px;
+      border-radius:22px;
+
+      /* ✅ “жидкое стекло” */
+      background: linear-gradient(180deg, var(--glass-a), var(--glass-b));
+      border: 1px solid var(--glass-stroke);
+      box-shadow: 0 30px 70px var(--glass-shadow);
+      backdrop-filter: blur(14px);
+
+      min-width:min(440px, 92vw);
+      max-width:780px;
+      font-family:"Roboto Condensed", sans-serif;
+
+      position: relative;
+      overflow: hidden;
+
+      animation: popIn .55s ease both, softGlow 2.8s ease-in-out infinite;
     }
-    .modal-window::before{
+
+    /* ✅ ТЁМНО-РОЗОВАЯ ПОДЛОЖКА ПОД ТЕКСТ (чтобы не сливалось) */
+    .overlay-content::before{
       content:"";
       position:absolute;
-      inset:0;
-      background:rgba(255,255,255,0.68);
-      backdrop-filter: blur(2px);
+      left:18px;
+      right:18px;
+      top:16px;
+      bottom:92px; /* кнопку оставляем чистой */
+      border-radius:16px;
+      background: linear-gradient(180deg,
+        rgba(90, 0, 45, 0.28),
+        rgba(90, 0, 45, 0.16));
       z-index:0;
     }
-    .modal-window > *{ position:relative; z-index:1; }
-
-    .modal-question{
-      font-size:22px;
-      line-height:1.25;
-      margin:0 auto 18px;
-      text-align:left;
-      max-width:520px;
-      color:#1e1b14;
-      white-space: pre-wrap;
-      font-variant-numeric: tabular-nums;
-    }
-    .modal-question.mono{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      letter-spacing: 0;
+    .overlay-title, .overlay-sub, .overlay-content button{
+      position: relative;
+      z-index: 1;
     }
 
-    .modal-actions{ display:flex; justify-content:center; }
+    .overlay-title{
+      font-size:28px;
+      font-weight:900;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      margin-bottom:10px;
+      color:#fff;
 
-    /* ===== Кнопки (нежно-розовые) ===== */
+      text-shadow:
+        0 3px 14px rgba(0,0,0,0.45),
+        0 0 22px rgba(255,120,170,0.55);
+    }
+    .overlay-sub{
+      font-size:20px;
+      line-height:1.3;
+      margin-bottom:18px;
+      color:#fff0f7;
+      white-space:pre-line;
+
+      text-shadow:
+        0 3px 12px rgba(0,0,0,0.55),
+        0 0 18px rgba(0,0,0,0.25);
+    }
+
+    /* ✅ ПУЛЬС СЕРДЕЧЕК НА СТАРТЕ */
+    .pulse-heart{
+      display:inline-block;
+      margin: 0 4px;
+      animation: heartPulse 1.2s ease-in-out infinite;
+      filter: drop-shadow(0 0 10px rgba(255, 90, 160, 0.55));
+    }
+
+    /* ===== Кнопки ===== */
     .btn-primary{
       border:none;
       border-radius:999px;
@@ -296,53 +347,71 @@
       box-shadow:0 18px 40px rgba(255, 90, 160, 0.45);
     }
 
-    /* ===== Оверлеи (старт и конец) ===== */
-    .overlay{
+    /* ===== Карточка задания — тоже “жидкое стекло” ===== */
+    .modal-backdrop{
       position:absolute;
       inset:0;
-      background: rgba(255, 200, 225, 0.18);
+      background: radial-gradient(circle at center, rgba(255,180,210,0.22), rgba(0,0,0,0.72));
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:120;
+      z-index:100;
       backdrop-filter: blur(6px);
     }
-    .overlay.active{ display:flex; }
+    .modal-backdrop.active{ display:flex; }
 
-    .overlay-content{
-      text-align:center;
-      padding:28px 30px 24px;
-      border-radius:22px;
-      background: radial-gradient(circle at top,
-        rgba(255,255,255,0.32),
-        rgba(255,170,205,0.14));
-      border: 1px solid rgba(255,255,255,0.45);
-      box-shadow:0 30px 70px rgba(0,0,0,0.35);
-      min-width:min(420px, 92vw);
-      max-width:760px;
-      font-family:"Roboto Condensed", sans-serif;
-    }
+    .modal-window{
+      position:relative;
+      width:min(620px, 92vw);
+      padding:26px 34px 22px;
 
-    .overlay-title{
-      font-size:28px;
-      font-weight:900;
-      letter-spacing:0.04em;
-      text-transform:uppercase;
-      margin-bottom:10px;
-      color:#fff;
-      text-shadow:0 0 18px rgba(255, 70, 145, 0.55);
+      /* ✅ стекло */
+      background: linear-gradient(180deg, rgba(255,255,255,0.40), rgba(255,255,255,0.18));
+      border-radius:24px;
+      border: 1px solid rgba(255,255,255,0.50);
+      box-shadow: 0 28px 60px rgba(0,0,0,0.45);
+      backdrop-filter: blur(16px);
+      overflow:hidden;
+
+      animation: popIn .45s ease both;
     }
-    .overlay-sub{
-      font-size:20px;
+    /* мягкий розовый отблеск */
+    .modal-window::after{
+      content:"";
+      position:absolute;
+      inset:-40px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,120,175,0.30), transparent 45%),
+        radial-gradient(circle at 80% 10%, rgba(255,220,235,0.25), transparent 45%),
+        radial-gradient(circle at 60% 90%, rgba(255,80,150,0.22), transparent 50%);
+      z-index:0;
+      pointer-events:none;
+      filter: blur(10px);
+      opacity: 0.9;
+    }
+    .modal-window > *{ position:relative; z-index:1; }
+
+    .modal-question{
+      font-size:22px;
       line-height:1.25;
-      margin-bottom:18px;
-      opacity:1;
-      color:#fff;
-      white-space:pre-line;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.25);
-    }
+      margin:0 auto 18px;
+      text-align:left;
+      max-width:560px;
 
-    /* Салют-конфетти (оставляем, но делаем нежно-розовым) */
+      color:#2a0b18;
+      white-space: pre-wrap;
+      font-variant-numeric: tabular-nums;
+
+      /* ✅ чтобы текст всегда читался на стекле */
+      text-shadow: 0 2px 10px rgba(255,255,255,0.55);
+    }
+    .modal-question.mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      letter-spacing: 0;
+    }
+    .modal-actions{ display:flex; justify-content:center; }
+
+    /* Салют-конфетти */
     .confetti{
       position:absolute;
       width:12px;
@@ -388,10 +457,10 @@
 
     <div id="hero"></div>
 
-    <!-- ✅ Новый стартовый фидбек -->
+    <!-- СТАРТ -->
     <div id="startOverlay" class="overlay active">
       <div class="overlay-content">
-        <div class="overlay-title">ПОМОГИ СОБРАТЬ ВАЛЕНТИНКИ!</div>
+        <div class="overlay-title">ПОМОГИ СОБРАТЬ ВАЛЕНТИНКИ <span class="pulse-heart">💗</span></div>
         <div class="overlay-sub">Собирай сердца 💗
 Остерегайся грозового облака ⛈
 Письма будут приносить тебе бонус ✉️</div>
@@ -399,6 +468,7 @@
       </div>
     </div>
 
+    <!-- КАРТОЧКА ЗАДАНИЯ -->
     <div id="taskModal" class="modal-backdrop">
       <div class="modal-window">
         <div id="modalQuestion" class="modal-question"></div>
@@ -408,11 +478,11 @@
       </div>
     </div>
 
-    <!-- ✅ Новый финальный фидбек -->
+    <!-- ФИНАЛ -->
     <div id="gameOverOverlay" class="overlay">
       <div class="overlay-content">
-        <div class="overlay-title" id="overlayTitle">ПОЗДРАВЛЯЮ!</div>
-        <div class="overlay-sub" id="overlaySub">Ты собрал(а) все валентинки! 💖</div>
+        <div class="overlay-title" id="overlayTitle">УРА! <span class="pulse-heart">💖</span></div>
+        <div class="overlay-sub" id="overlaySub">Поздравляю! Ты собрал(а) все валентинки! ✨</div>
         <button id="btnRestart" class="btn-primary">Начать заново?</button>
       </div>
     </div>
@@ -441,15 +511,15 @@
     let HERO_INPUT_SPEED = 2.6;
 
     const HERO_GROWTH_PER_COLLECT = 0.05;
-    const NUM_MAIN_ITEMS = 10;
-    const NUM_CANDIES = 3; // письма
-    const NUM_BOMBS = 2;   // облака
+    const NUM_MAIN_ITEMS = 10;  // сердца
+    const NUM_CANDIES = 3;      // письма
+    const NUM_BOMBS = 2;        // облака
 
     const SPAWN_BATCH_MIN = 2;
     const SPAWN_BATCH_MAX = 3;
     const SPAWN_INTERVAL = 1200;
 
-    const NEARBY_DISTANCE = 120;
+    const NEARBY_DISTANCE = 125;
 
     let hero = { x: 200, y: 200, scale: 1, flipped: false };
     let keys = { ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false };
@@ -468,6 +538,7 @@
     let isWin = false;
     let modalOpen = false;
 
+    /* ✅ ТВОЙ МАССИВ ЗАДАНИЙ */
     const TASK_CARDS = [
 `Выполните вычисления.
 
@@ -655,7 +726,7 @@
     function spawnMainItem(index){
       const id = "item-" + index;
       const type = (index % 3) + 1;
-      const size = 78;
+      const size = 92;
       const pos = findNonOverlappingPosition(size);
 
       const el = document.createElement("div");
@@ -677,7 +748,7 @@
 
     function spawnCandy(index){
       const id = "candy-" + index;
-      const size = 70;
+      const size = 84;
       const pos = findNonOverlappingPosition(size);
 
       const el = document.createElement("div");
@@ -766,8 +837,8 @@
     function showGoldPop(cx, cy){
       const pop = document.createElement("div");
       pop.className = "gold-pop";
-      pop.style.left = (cx - 45) + "px";
-      pop.style.top = (cy - 45) + "px";
+      pop.style.left = (cx - 48) + "px";
+      pop.style.top = (cy - 48) + "px";
       gameEl.appendChild(pop);
       setTimeout(()=>pop.remove(), 650);
     }
@@ -868,7 +939,7 @@
 
       if (foundCount >= NUM_MAIN_ITEMS){
         isWin = true;
-        overlayTitle.textContent = "УРА! 💕";
+        overlayTitle.innerHTML = 'УРА! <span class="pulse-heart">💖</span>';
         overlaySub.textContent = "Поздравляю! Ты собрал(а) все валентинки!\nТы молодец ✨";
         gameOverOverlay.classList.add("active");
         addConfetti();
