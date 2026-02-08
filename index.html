@@ -265,13 +265,10 @@
   padding:28px 30px 24px;
   border-radius:22px;
 
-  /* ✅ тот самый “тёмный” розовый как внутренняя рамка */
-  background: rgba(90, 0, 45, 0.34);
+  /* ✅ один цельный тёмно-розовый как “внутренняя рамка” */
+  background: rgba(90, 0, 45, 0.42);
 
-  /* ✅ БЕЛУЮ РАМКУ УБРАЛИ */
   border: none;
-
-  /* ✅ аккуратная тень + стекло */
   box-shadow: 0 28px 70px rgba(0,0,0,0.35);
   backdrop-filter: blur(12px);
 
@@ -284,21 +281,7 @@
 
   animation: popIn .55s ease both, softGlow 2.8s ease-in-out infinite;
 }
-
-    /* ✅ ТЁМНО-РОЗОВАЯ ПОДЛОЖКА ПОД ТЕКСТ (чтобы не сливалось) */
-    .overlay-content::before{
-      content:"";
-      position:absolute;
-      left:18px;
-      right:18px;
-      top:16px;
-      bottom:92px; /* кнопку оставляем чистой */
-      border-radius:16px;
-      background: linear-gradient(180deg,
-        rgba(90, 0, 45, 0.28),
-        rgba(90, 0, 45, 0.16));
-      z-index:0;
-    }
+    
     .overlay-title, .overlay-sub, .overlay-content button{
       position: relative;
       z-index: 1;
