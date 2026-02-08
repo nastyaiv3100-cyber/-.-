@@ -463,6 +463,36 @@
       box-shadow:0 18px 40px rgba(255, 90, 160, 0.45);
       animation: none;
     }
+    
+    .btn-secondary{
+      border:none;
+      border-radius:999px;
+      padding:8px 20px;
+      font-size:18px;
+      font-weight:700;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      cursor:pointer;
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow:0 8px 20px rgba(0, 0, 0, 0.25);
+      color:#fff;
+      transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+      font-family:"Roboto Condensed", sans-serif;
+      border:1px solid rgba(255,255,255,0.35);
+      margin-top: 10px;
+    }
+    .btn-secondary:hover{
+      transform:translateY(-2px);
+      background: rgba(255, 255, 255, 0.25);
+      box-shadow:0 12px 30px rgba(0, 0, 0, 0.35);
+    }
+    
+    .button-group{
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
 
     /* ===== Карточка задания — тоже "жидкое стекло" ===== */
     .modal-backdrop{
@@ -589,7 +619,10 @@
         <div class="overlay-sub">Собирай сердца 💗
 Остерегайся грозового облака ⛈
 Письма будут приносить тебе бонус ✉️</div>
-        <button id="btnPlay" class="btn-primary">Играть</button>
+        <div class="button-group">
+          <button id="btnContinue" class="btn-primary" style="display:none;">Продолжить игру</button>
+          <button id="btnPlay" class="btn-primary">Новая игра</button>
+        </div>
       </div>
     </div>
 
@@ -623,6 +656,7 @@
 
     const startOverlay = document.getElementById('startOverlay');
     const btnPlay = document.getElementById('btnPlay');
+    const btnContinue = document.getElementById('btnContinue');
 
     const taskModal = document.getElementById('taskModal');
     const modalQuestionEl = document.getElementById('modalQuestion');
@@ -672,6 +706,48 @@
     let gameStartTime = 0;
     let totalClicks = 0;
     let trailTimer = null;
+    
+    // ✨ СИСТЕМА СОХРАНЕНИЯ ПРОГРЕССА
+    const SAVE_KEY = 'valentine_game_progress';
+    
+    function saveProgress(){
+      const saveData = {
+        score: score,
+        foundCount: foundCount,
+        collectedItems: items.filter(i => i.collected).map(i => i.orderIndex),
+        timestamp: Date.now()
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+      console.log('Прогресс сохранён:', saveData);
+    }
+    
+    function loadProgress(){
+      const saved = localStorage.getItem(SAVE_KEY);
+      if(!saved) return null;
+      
+      try {
+        const data = JSON.parse(saved);
+        // Проверяем, что сохранение не старше 7 дней
+        const weekInMs = 7 * 24 * 60 * 60 * 1000;
+        if(Date.now() - data.timestamp > weekInMs){
+          localStorage.removeItem(SAVE_KEY);
+          return null;
+        }
+        return data;
+      } catch(e) {
+        console.error('Ошибка загрузки:', e);
+        return null;
+      }
+    }
+    
+    function clearProgress(){
+      localStorage.removeItem(SAVE_KEY);
+      console.log('Прогресс очищен');
+    }
+    
+    function hasSavedProgress(){
+      return loadProgress() !== null;
+    }
 
     const TASK_CARDS = [
 `Реши задачу:
@@ -1192,6 +1268,9 @@
       score += 10;
       foundCount++;
       
+      // ✨ СОХРАНЯЕМ ПРОГРЕСС
+      saveProgress();
+      
       // ✨ STREAK СИСТЕМА
       const now = Date.now();
       if(now - lastCollectTime < STREAK_TIMEOUT){
@@ -1210,6 +1289,9 @@
 
       if (foundCount >= NUM_MAIN_ITEMS){
         isWin = true;
+        
+        // ✨ ОЧИЩАЕМ СОХРАНЕНИЕ ПРИ ПОБЕДЕ
+        clearProgress();
         
         // ✨ ФИНАЛЬНАЯ СТАТИСТИКА
         const gameTime = Math.floor((Date.now() - gameStartTime) / 1000);
@@ -1260,7 +1342,7 @@
       }
     }
 
-    function initGame(){
+    function initGame(loadSaved = false){
       const cs = getComputedStyle(document.documentElement);
       HERO_INPUT_SPEED = parseFloat(cs.getPropertyValue("--hero-input-speed")) || 2.6;
 
@@ -1290,6 +1372,25 @@
       pendingMain = NUM_MAIN_ITEMS;
       pendingCandies = NUM_CANDIES;
       pendingBombs = NUM_BOMBS;
+
+      // ✨ ЗАГРУЗКА СОХРАНЁННОГО ПРОГРЕССА
+      if(loadSaved){
+        const savedData = loadProgress();
+        if(savedData){
+          score = savedData.score;
+          foundCount = savedData.foundCount;
+          
+          // Увеличиваем героя согласно собранным предметам
+          hero.scale = 1 + (foundCount * HERO_GROWTH_PER_COLLECT);
+          updateHeroVisual();
+          
+          // Помечаем собранные предметы как недоступные для спавна
+          pendingMain = NUM_MAIN_ITEMS - savedData.collectedItems.length;
+        }
+      } else {
+        // Новая игра - очищаем сохранение
+        clearProgress();
+      }
 
       updateHUD();
       
@@ -1333,7 +1434,14 @@
     btnPlay.addEventListener("click", () => {
       ensureAudio(); SFX.start();
       startOverlay.classList.remove("active");
-      initGame();
+      initGame(false); // Новая игра
+      gameEl.focus();
+    });
+    
+    btnContinue.addEventListener("click", () => {
+      ensureAudio(); SFX.start();
+      startOverlay.classList.remove("active");
+      initGame(true); // Загрузить сохранение
       gameEl.focus();
     });
 
@@ -1345,12 +1453,26 @@
 
     btnRestart.addEventListener("click", () => {
       ensureAudio();
-      initGame();
+      initGame(false);
       gameEl.focus();
     });
 
     window.addEventListener("resize", () => {
-      if (!startOverlay.classList.contains("active")) initGame();
+      if (!startOverlay.classList.contains("active")) initGame(false);
+    });
+    
+    // ✨ ПРОВЕРКА СОХРАНЁННОГО ПРОГРЕССА ПРИ ЗАГРУЗКЕ
+    window.addEventListener('load', () => {
+      if(hasSavedProgress()){
+        const savedData = loadProgress();
+        btnContinue.style.display = 'block';
+        btnPlay.textContent = 'Новая игра';
+        
+        // Обновляем текст с информацией о сохранении
+        const subText = document.querySelector('#startOverlay .overlay-sub');
+        subText.textContent = `У вас есть сохранённая игра!\nСобрано: ${savedData.foundCount}/${NUM_MAIN_ITEMS} валентинок\n\n` + 
+                              `Собирай сердца 💗\nОстерегайся грозового облака ⛈\nПисьма будут приносить тебе бонус ✉️`;
+      }
     });
   </script>
 </body>
