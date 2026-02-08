@@ -5,6 +5,15 @@
   <title>Valentine Game</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- ✨ ПРЕДЗАГРУЗКА ИЗОБРАЖЕНИЙ -->
+  <link rel="preload" as="image" href="https://img.genially.com/684ea2da1b51060014c50e97/d8e85def-788c-434d-bcf5-d40e6fe8f888.png">
+  <link rel="preload" as="image" href="https://img.genially.com/684ea2da1b51060014c50e97/dd62aa0c-fbc5-4ce8-b443-68d1b5fcc4e8.png">
+  <link rel="preload" as="image" href="https://img.genially.com/684ea2da1b51060014c50e97/4d1f01fd-30cf-4c17-9456-9177e78273bc.png">
+  <link rel="preload" as="image" href="https://img.genially.com/684ea2da1b51060014c50e97/4fd829ec-c34e-42e6-8233-833445b3e56a.png">
+  <link rel="preload" as="image" href="https://img.genially.com/684ea2da1b51060014c50e97/2a3daf0b-37d1-4274-a722-548e6200c839.png">
+  <link rel="preload" as="image" href="https://img.genially.com/684ea2da1b51060014c50e97/ce1c1977-9c73-42c7-84d8-ebb7e7c4a9b9.png">
+  <link rel="preload" as="image" href="https://img.genially.com/684ea2da1b51060014c50e97/fd09a53e-177d-47b1-a552-cacd3874ce31.png">
 
   <style>
     :root{
@@ -52,6 +61,25 @@
       color:#fff;
       font-size:20px;
       outline:none;
+      transition: transform 0.1s ease-out;
+    }
+
+    /* ✨ ЗВЁЗДОЧКИ НА ФОНЕ */
+    .star{
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+      opacity: 0;
+      animation: twinkle 3s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+    @keyframes twinkle{
+      0%, 100% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: 1; transform: scale(1.2); }
     }
 
     /* =====================
@@ -69,6 +97,12 @@
     @keyframes heartPulse {
       0%, 100% { transform: scale(1); }
       50%      { transform: scale(1.18); }
+    }
+    
+    /* ✨ ДЫХАНИЕ КНОПОК */
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
     }
 
     /* ===== HUD ===== */
@@ -106,6 +140,32 @@
       border-radius: 999px;
       background: rgba(255,255,255,0.18);
       border: 1px solid rgba(255,255,255,0.25);
+      transition: all 0.3s ease;
+    }
+    
+    /* ✨ STREAK СЧЁТЧИК */
+    .streak-badge{
+      position: absolute;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%) scale(0);
+      padding: 8px 20px;
+      background: linear-gradient(135deg, #ffd700, #ff6b9d);
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 8px 25px rgba(255, 107, 157, 0.6);
+      z-index: 60;
+      opacity: 0;
+      animation: streakPop 1.5s ease forwards;
+      pointer-events: none;
+    }
+    @keyframes streakPop{
+      0% { opacity: 0; transform: translateX(-50%) scale(0) translateY(20px); }
+      20% { opacity: 1; transform: translateX(-50%) scale(1.2) translateY(0); }
+      80% { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) scale(0.8) translateY(-10px); }
     }
 
     /* ✅ ПРОГРЕСС-БАР */
@@ -115,30 +175,24 @@
       gap:10px;
     }
     .bar{
-  width: 240px;
-  height: 12px;
-  border-radius: 999px;
+      width: 240px;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(90, 0, 45, 0.22);
+      overflow:hidden;
+      border: none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+    }
 
-  /* ✅ тот же цвет */
-  background: rgba(90, 0, 45, 0.22);
-
-  overflow:hidden;
-  border: none;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
-}
-
-.bar > i{
-  display:block;
-  height:100%;
-  width:0%;
-
-  /* ✅ заливка тем же цветом, только плотнее */
-  background: rgba(90, 0, 45, 0.32);
-
-  border-radius: 999px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
-  transition: width .25s ease;
-}
+    .bar > i{
+      display:block;
+      height:100%;
+      width:0%;
+      background: rgba(90, 0, 45, 0.32);
+      border-radius: 999px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+      transition: width .25s ease;
+    }
 
     /* ===== ГЕРОЙ ===== */
     #hero{
@@ -159,6 +213,23 @@
       75%{ transform:translateX(-4px) rotate(-3deg) scale(var(--hero-scale,1)); }
     }
     .hero-wiggle{ animation:wiggle .6s ease; }
+    
+    /* ✨ TRAIL ЗА ГЕРОЕМ */
+    .hero-trail{
+      position: absolute;
+      width: 120px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(255, 120, 175, 0.4), transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 4;
+      opacity: 0;
+      animation: trailFade 0.6s ease-out forwards;
+    }
+    @keyframes trailFade{
+      0% { opacity: 0.6; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.5); }
+    }
 
     /* ===== ОБЪЕКТЫ ===== */
     .item,.candy,.bomb{
@@ -174,7 +245,16 @@
     /* ✅ УВЕЛИЧИЛА ВСЕ ИКОНКИ КРОМЕ БОМБЫ */
     .item{  width:92px; height:92px; }
     .candy{ width:84px; height:84px; }
-    .bomb{  width:130px; height:130px; } /* не трогаем */
+    .bomb{  width:130px; height:130px; }
+    
+    /* ✨ ПУЛЬСАЦИЯ СЕРДЕЦ */
+    .item:not(.collected){
+      animation: itemPulse 2s ease-in-out infinite;
+    }
+    @keyframes itemPulse{
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
 
     /* ✅ СЕРДЦА */
     .item-type-1{
@@ -207,6 +287,26 @@
         drop-shadow(0 0 5px rgba(255, 200, 225, 0.95))
         drop-shadow(0 0 14px rgba(255, 120, 175, 0.75));
       transform:translateZ(0);
+    }
+
+    /* ✨ ПАРТИКЛЫ-СЕРДЕЧКИ */
+    .heart-particle{
+      position: absolute;
+      font-size: 24px;
+      pointer-events: none;
+      z-index: 45;
+      opacity: 0;
+      animation: heartParticle 1s ease-out forwards;
+    }
+    @keyframes heartParticle{
+      0% { 
+        opacity: 1; 
+        transform: translate(0, 0) scale(0.5) rotate(0deg); 
+      }
+      100% { 
+        opacity: 0; 
+        transform: translate(var(--tx), var(--ty)) scale(1.2) rotate(360deg); 
+      }
     }
 
     .gold-pop{
@@ -261,26 +361,20 @@
     .overlay.active{ display:flex; }
 
     .overlay-content{
-  text-align:center;
-  padding:28px 30px 24px;
-  border-radius:22px;
-
-  /* ✅ один цельный тёмно-розовый как “внутренняя рамка” */
-  background: rgba(90, 0, 45, 0.42);
-
-  border: none;
-  box-shadow: 0 28px 70px rgba(0,0,0,0.35);
-  backdrop-filter: blur(12px);
-
-  min-width:min(440px, 92vw);
-  max-width:780px;
-  font-family:"Roboto Condensed", sans-serif;
-
-  position: relative;
-  overflow: hidden;
-
-  animation: popIn .55s ease both, softGlow 2.8s ease-in-out infinite;
-}
+      text-align:center;
+      padding:28px 30px 24px;
+      border-radius:22px;
+      background: rgba(90, 0, 45, 0.42);
+      border: none;
+      box-shadow: 0 28px 70px rgba(0,0,0,0.35);
+      backdrop-filter: blur(12px);
+      min-width:min(440px, 92vw);
+      max-width:780px;
+      font-family:"Roboto Condensed", sans-serif;
+      position: relative;
+      overflow: hidden;
+      animation: popIn .55s ease both, softGlow 2.8s ease-in-out infinite;
+    }
     
     .overlay-title, .overlay-sub, .overlay-content button{
       position: relative;
@@ -294,7 +388,6 @@
       text-transform:uppercase;
       margin-bottom:10px;
       color:#fff;
-
       text-shadow:
         0 3px 14px rgba(0,0,0,0.45),
         0 0 22px rgba(255,120,170,0.55);
@@ -305,10 +398,36 @@
       margin-bottom:18px;
       color:#fff0f7;
       white-space:pre-line;
-
       text-shadow:
         0 3px 12px rgba(0,0,0,0.55),
         0 0 18px rgba(0,0,0,0.25);
+    }
+    
+    /* ✨ ФИНАЛЬНАЯ СТАТИСТИКА */
+    .stats-grid{
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .stat-item{
+      text-align: center;
+      padding: 8px;
+    }
+    .stat-label{
+      font-size: 14px;
+      opacity: 0.85;
+      margin-bottom: 4px;
+    }
+    .stat-value{
+      font-size: 24px;
+      font-weight: 900;
+      color: #ffe28a;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
     }
 
     /* ✅ ПУЛЬС СЕРДЕЧЕК НА СТАРТЕ */
@@ -335,13 +454,17 @@
       transition:transform .15s ease, box-shadow .15s ease;
       font-family:"Roboto Condensed", sans-serif;
       border:1px solid rgba(255,255,255,0.45);
+      
+      /* ✨ ДЫХАНИЕ КНОПОК */
+      animation: breathe 2s ease-in-out infinite;
     }
     .btn-primary:hover{
       transform:translateY(-2px);
       box-shadow:0 18px 40px rgba(255, 90, 160, 0.45);
+      animation: none;
     }
 
-    /* ===== Карточка задания — тоже “жидкое стекло” ===== */
+    /* ===== Карточка задания — тоже "жидкое стекло" ===== */
     .modal-backdrop{
       position:absolute;
       inset:0;
@@ -358,18 +481,14 @@
       position:relative;
       width:min(620px, 92vw);
       padding:26px 34px 22px;
-
-      /* ✅ стекло */
       background: linear-gradient(180deg, rgba(255,255,255,0.40), rgba(255,255,255,0.18));
       border-radius:24px;
       border: 1px solid rgba(255,255,255,0.50);
       box-shadow: 0 28px 60px rgba(0,0,0,0.45);
       backdrop-filter: blur(16px);
       overflow:hidden;
-
       animation: popIn .45s ease both;
     }
-    /* мягкий розовый отблеск */
     .modal-window::after{
       content:"";
       position:absolute;
@@ -391,12 +510,9 @@
       margin:0 auto 18px;
       text-align:left;
       max-width:560px;
-
       color:#2a0b18;
       white-space: pre-wrap;
       font-variant-numeric: tabular-nums;
-
-      /* ✅ чтобы текст всегда читался на стекле */
       text-shadow: 0 2px 10px rgba(255,255,255,0.55);
     }
     .modal-question.mono{
@@ -425,11 +541,26 @@
       background: linear-gradient(135deg, var(--pink-1), #ff5fa7);
     }
     @keyframes confetti{
-      0%{ opacity:0; transform:translate3d(0,-100px,0) rotateZ(0deg) scale(0.3); }
-      10%{ opacity:1; transform:translate3d(0,-50px,0) rotateZ(60deg) scale(1); }
-      30%{ opacity:1; transform:translate3d(0,30vh,0) rotateZ(180deg) scale(1.1); }
-      60%{ opacity:1; transform:translate3d(0,70vh,0) rotateZ(300deg) scale(1); }
-      100%{ opacity:0; transform:translate3d(0,110vh,0) rotateZ(450deg) scale(0.5); }
+      0%{ 
+        opacity:0; 
+        transform:translate3d(0,-100px,0) rotateZ(0deg) scale(0.3); 
+      }
+      10%{ 
+        opacity:1; 
+        transform:translate3d(0,-50px,0) rotateZ(60deg) scale(1); 
+      }
+      30%{ 
+        opacity:1; 
+        transform:translate3d(0,30vh,0) rotateZ(180deg) scale(1.2); 
+      }
+      60%{ 
+        opacity:1; 
+        transform:translate3d(0,70vh,0) rotateZ(300deg) scale(1); 
+      }
+      100%{ 
+        opacity:0; 
+        transform:translate3d(0,110vh,0) rotateZ(450deg) scale(0.5); 
+      }
     }
   </style>
 </head>
@@ -477,6 +608,7 @@
       <div class="overlay-content">
         <div class="overlay-title" id="overlayTitle">УРА! <span class="pulse-heart">💖</span></div>
         <div class="overlay-sub" id="overlaySub">Поздравляю! Ты собрал(а) все валентинки! ✨</div>
+        <div id="statsContainer"></div>
         <button id="btnRestart" class="btn-primary">Начать заново?</button>
       </div>
     </div>
@@ -499,15 +631,16 @@
     const gameOverOverlay = document.getElementById('gameOverOverlay');
     const overlayTitle = document.getElementById('overlayTitle');
     const overlaySub = document.getElementById('overlaySub');
+    const statsContainer = document.getElementById('statsContainer');
     const btnRestart = document.getElementById('btnRestart');
 
     const HERO_BASE_SIZE = { w: 160, h: 190 };
     let HERO_INPUT_SPEED = 2.6;
 
     const HERO_GROWTH_PER_COLLECT = 0.05;
-    const NUM_MAIN_ITEMS = 10;  // сердца
-    const NUM_CANDIES = 3;      // письма
-    const NUM_BOMBS = 2;        // облака
+    const NUM_MAIN_ITEMS = 10;
+    const NUM_CANDIES = 3;
+    const NUM_BOMBS = 2;
 
     const SPAWN_BATCH_MIN = 2;
     const SPAWN_BATCH_MAX = 3;
@@ -531,8 +664,15 @@
     let foundCount = 0;
     let isWin = false;
     let modalOpen = false;
+    
+    // ✨ НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ WOW-ЭФФЕКТОВ
+    let streak = 0;
+    let lastCollectTime = 0;
+    const STREAK_TIMEOUT = 3000;
+    let gameStartTime = 0;
+    let totalClicks = 0;
+    let trailTimer = null;
 
-    /* ✅ ТВОЙ МАССИВ ЗАДАНИЙ */
     const TASK_CARDS = [
 `Выполните вычисления.
 
@@ -612,7 +752,8 @@
       collect(){ beep({freq:740, dur:0.07, type:'triangle', vol:0.12}); setTimeout(()=>beep({freq:880,dur:0.08,type:'triangle',vol:0.12}),70); },
       bonus(){ beep({freq:740, dur:0.06, type:'sine', vol:0.12}); setTimeout(()=>beep({freq:988,dur:0.06,type:'sine',vol:0.12}),60); setTimeout(()=>beep({freq:1175,dur:0.08,type:'sine',vol:0.12}),120); },
       bomb(){ beep({freq:160, dur:0.16, type:'sawtooth', vol:0.16, slideTo:60}); },
-      win(){ beep({freq:523, dur:0.08, type:'triangle', vol:0.12}); setTimeout(()=>beep({freq:659,dur:0.08,type:'triangle',vol:0.12}),90); setTimeout(()=>beep({freq:784,dur:0.10,type:'triangle',vol:0.12}),180); }
+      win(){ beep({freq:523, dur:0.08, type:'triangle', vol:0.12}); setTimeout(()=>beep({freq:659,dur:0.08,type:'triangle',vol:0.12}),90); setTimeout(()=>beep({freq:784,dur:0.10,type:'triangle',vol:0.12}),180); },
+      streak(){ beep({freq:880, dur:0.06, type:'sine', vol:0.14}); setTimeout(()=>beep({freq:1047,dur:0.06,type:'sine',vol:0.14}),50); }
     };
 
     let freezeUntil = 0;
@@ -636,6 +777,109 @@
 
       if (hero.y <= 60) hero.y = 60;
       else if (hero.y + heroH >= h - margin) hero.y = h - margin - heroH;
+    }
+    
+    // ✨ CAMERA SHAKE
+    function cameraShake(intensity = 10, duration = 300){
+      const startTime = Date.now();
+      const shake = () => {
+        const elapsed = Date.now() - startTime;
+        if(elapsed < duration){
+          const x = (Math.random() - 0.5) * intensity;
+          const y = (Math.random() - 0.5) * intensity;
+          gameEl.style.transform = `translate(${x}px, ${y}px)`;
+          requestAnimationFrame(shake);
+        } else {
+          gameEl.style.transform = 'translate(0, 0)';
+        }
+      };
+      shake();
+    }
+    
+    // ✨ СОЗДАНИЕ ЗВЁЗДОЧЕК НА ФОНЕ
+    function createStars(){
+      const count = 50;
+      for(let i = 0; i < count; i++){
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 3 + 's';
+        star.style.animationDuration = (2 + Math.random() * 2) + 's';
+        gameEl.appendChild(star);
+      }
+    }
+    
+    // ✨ TRAIL ЗА ГЕРОЕМ
+    function createTrail(){
+      if(trailTimer) return;
+      trailTimer = setInterval(() => {
+        if(modalOpen || isWin) return;
+        
+        let dx = 0, dy = 0;
+        if(keys.ArrowUp) dy -= 1;
+        if(keys.ArrowDown) dy += 1;
+        if(keys.ArrowLeft) dx -= 1;
+        if(keys.ArrowRight) dx += 1;
+        
+        if(dx !== 0 || dy !== 0){
+          const trail = document.createElement('div');
+          trail.className = 'hero-trail';
+          trail.style.left = (hero.x + 20) + 'px';
+          trail.style.top = (hero.y + 25) + 'px';
+          gameEl.appendChild(trail);
+          setTimeout(() => trail.remove(), 600);
+        }
+      }, 80);
+    }
+    
+    // ✨ ПАРТИКЛЫ-СЕРДЕЧКИ
+    function createHeartParticles(x, y){
+      const hearts = ['💗', '💖', '💕', '💝'];
+      const count = 8;
+      
+      for(let i = 0; i < count; i++){
+        const particle = document.createElement('div');
+        particle.className = 'heart-particle';
+        particle.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        
+        const angle = (Math.PI * 2 * i) / count;
+        const distance = 60 + Math.random() * 40;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.setProperty('--tx', tx + 'px');
+        particle.style.setProperty('--ty', ty + 'px');
+        particle.style.animationDelay = (i * 0.05) + 's';
+        
+        gameEl.appendChild(particle);
+        setTimeout(() => particle.remove(), 1000);
+      }
+    }
+    
+    // ✨ ПОКАЗ STREAK
+    function showStreak(){
+      const existing = document.querySelector('.streak-badge');
+      if(existing) existing.remove();
+      
+      const badge = document.createElement('div');
+      badge.className = 'streak-badge';
+      
+      let bonusPoints = 0;
+      if(streak >= 3) bonusPoints = 2;
+      if(streak >= 5) bonusPoints = 5;
+      if(streak >= 7) bonusPoints = 10;
+      
+      badge.textContent = `🔥 Подряд x${streak}! +${bonusPoints} баллов`;
+      gameEl.appendChild(badge);
+      
+      score += bonusPoints;
+      updateHUD();
+      SFX.streak();
+      
+      setTimeout(() => badge.remove(), 1500);
     }
 
     function rand(min, max){ return Math.random() * (max - min) + min; }
@@ -676,7 +920,7 @@
     }
 
     function clearObjects(){
-      [...document.querySelectorAll('.item, .candy, .bomb, .gold-pop, .floating-score, .confetti')]
+      [...document.querySelectorAll('.item, .candy, .bomb, .gold-pop, .floating-score, .confetti, .heart-particle')]
         .forEach(el => el.remove());
       items = []; candies = []; bombs = [];
     }
@@ -686,6 +930,10 @@
       foundEl.textContent = foundCount + " / " + NUM_MAIN_ITEMS;
       const pct = Math.max(0, Math.min(100, (foundCount / NUM_MAIN_ITEMS) * 100));
       barFill.style.width = pct + "%";
+      
+      // Анимация при обновлении
+      scoreEl.style.transform = 'scale(1.2)';
+      setTimeout(() => scoreEl.style.transform = 'scale(1)', 200);
     }
 
     function updateHeroVisual(){
@@ -733,6 +981,7 @@
         const obj = items.find(it => it.id === id);
         if (!obj || obj.collected) return;
         if (!obj.active) return;
+        totalClicks++;
         openTaskCard(obj.orderIndex);
       });
 
@@ -850,7 +1099,6 @@
       const heroW = HERO_BASE_SIZE.w * hero.scale;
       const heroH = HERO_BASE_SIZE.h * hero.scale;
 
-      // письма = бонус
       candies.forEach(c => {
         if (c.eaten) return;
         if (rectsOverlap(hero.x, hero.y, heroW, heroH, c.x, c.y, c.size, c.size)){
@@ -866,11 +1114,11 @@
         }
       });
 
-      // облака = “бомба”
       bombs.forEach(b => {
         if (b.exploded) return;
         if (rectsOverlap(hero.x, hero.y, heroW, heroH, b.x, b.y, b.size, b.size)){
           freeze(340); knockback(14); SFX.bomb();
+          cameraShake(12, 400); // ✨ CAMERA SHAKE
           b.exploded = true;
           b.el.style.opacity = "0";
           b.el.style.transform = "scale(0.35)";
@@ -878,6 +1126,9 @@
           heroEl.classList.remove("hero-wiggle");
           void heroEl.offsetWidth;
           heroEl.classList.add("hero-wiggle");
+          
+          // Сбрасываем streak при попадании в облако
+          streak = 0;
         }
       });
     }
@@ -911,6 +1162,7 @@
       if (!item || item.collected){ pendingCollectIndex = null; return; }
 
       item.collected = true;
+      item.el.classList.add('collected');
       item.el.style.transform = "scale(0.1)";
       item.el.style.opacity = "0";
 
@@ -919,6 +1171,7 @@
 
       SFX.collect();
       showGoldPop(cx, cy);
+      createHeartParticles(cx, cy); // ✨ ПАРТИКЛЫ-СЕРДЕЧКИ
       showFloatingScore("+10", cx, cy - 10);
       setTimeout(()=>item.el.remove(), 250);
 
@@ -927,14 +1180,56 @@
 
       score += 10;
       foundCount++;
+      
+      // ✨ STREAK СИСТЕМА
+      const now = Date.now();
+      if(now - lastCollectTime < STREAK_TIMEOUT){
+        streak++;
+        if(streak >= 3){
+          showStreak();
+        }
+      } else {
+        streak = 1;
+      }
+      lastCollectTime = now;
+      
       updateHUD();
 
       pendingCollectIndex = null;
 
       if (foundCount >= NUM_MAIN_ITEMS){
         isWin = true;
+        
+        // ✨ ФИНАЛЬНАЯ СТАТИСТИКА
+        const gameTime = Math.floor((Date.now() - gameStartTime) / 1000);
+        const minutes = Math.floor(gameTime / 60);
+        const seconds = gameTime % 60;
+        const accuracy = Math.round((foundCount / totalClicks) * 100);
+        
         overlayTitle.innerHTML = 'УРА! <span class="pulse-heart">💖</span>';
         overlaySub.textContent = "Поздравляю! Ты собрал(а) все валентинки!\nТы молодец ✨";
+        
+        statsContainer.innerHTML = `
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">⏱️ Время</div>
+              <div class="stat-value">${minutes}:${seconds.toString().padStart(2, '0')}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">🎯 Точность</div>
+              <div class="stat-value">${accuracy}%</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">⭐ Баллы</div>
+              <div class="stat-value">${score}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">💝 Собрано</div>
+              <div class="stat-value">${foundCount}/${NUM_MAIN_ITEMS}</div>
+            </div>
+          </div>
+        `;
+        
         gameOverOverlay.classList.add("active");
         addConfetti();
         SFX.win();
@@ -964,6 +1259,12 @@
       modalOpen = false;
       pendingCollectIndex = null;
       freezeUntil = 0;
+      
+      // ✨ СБРОС НОВЫХ ПЕРЕМЕННЫХ
+      streak = 0;
+      lastCollectTime = 0;
+      gameStartTime = Date.now();
+      totalClicks = 0;
 
       hero.scale = 1;
       hero.x = gameEl.clientWidth/2 - HERO_BASE_SIZE.w/2;
@@ -971,7 +1272,7 @@
       hero.flipped = false;
       updateHeroVisual();
 
-      document.querySelectorAll(".confetti").forEach(el => el.remove());
+      document.querySelectorAll(".confetti, .star, .streak-badge").forEach(el => el.remove());
       gameOverOverlay.classList.remove("active");
 
       clearObjects();
@@ -980,6 +1281,12 @@
       pendingBombs = NUM_BOMBS;
 
       updateHUD();
+      
+      // ✨ СОЗДАНИЕ ЗВЁЗДОЧЕК
+      createStars();
+      
+      // ✨ ЗАПУСК TRAIL
+      createTrail();
 
       if (spawnTimer) clearInterval(spawnTimer);
       spawnTimer = setInterval(spawnBatch, SPAWN_INTERVAL);
