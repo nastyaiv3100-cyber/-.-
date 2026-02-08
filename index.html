@@ -115,23 +115,30 @@
       gap:10px;
     }
     .bar{
-      width: 240px;
-      height: 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.22);
-      overflow:hidden;
-      border: 1px solid rgba(255,255,255,0.28);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
-    }
-    .bar > i{
-      display:block;
-      height:100%;
-      width:0%;
-      background: linear-gradient(90deg, var(--pink-2), var(--pink-4));
-      border-radius: 999px;
-      box-shadow: 0 0 16px rgba(255, 120, 175, 0.55);
-      transition: width .25s ease;
-    }
+  width: 240px;
+  height: 12px;
+  border-radius: 999px;
+
+  /* ✅ тот же цвет */
+  background: rgba(90, 0, 45, 0.22);
+
+  overflow:hidden;
+  border: none;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+}
+
+.bar > i{
+  display:block;
+  height:100%;
+  width:0%;
+
+  /* ✅ заливка тем же цветом, только плотнее */
+  background: rgba(90, 0, 45, 0.58);
+
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgba(255, 120, 175, 0.25);
+  transition: width .25s ease;
+}
 
     /* ===== ГЕРОЙ ===== */
     #hero{
@@ -254,25 +261,29 @@
     .overlay.active{ display:flex; }
 
     .overlay-content{
-      text-align:center;
-      padding:28px 30px 24px;
-      border-radius:22px;
+  text-align:center;
+  padding:28px 30px 24px;
+  border-radius:22px;
 
-      /* ✅ “жидкое стекло” */
-      background: linear-gradient(180deg, var(--glass-a), var(--glass-b));
-      border: 1px solid var(--glass-stroke);
-      box-shadow: 0 30px 70px var(--glass-shadow);
-      backdrop-filter: blur(14px);
+  /* ✅ тот самый “тёмный” розовый как внутренняя рамка */
+  background: rgba(90, 0, 45, 0.34);
 
-      min-width:min(440px, 92vw);
-      max-width:780px;
-      font-family:"Roboto Condensed", sans-serif;
+  /* ✅ БЕЛУЮ РАМКУ УБРАЛИ */
+  border: none;
 
-      position: relative;
-      overflow: hidden;
+  /* ✅ аккуратная тень + стекло */
+  box-shadow: 0 28px 70px rgba(0,0,0,0.35);
+  backdrop-filter: blur(12px);
 
-      animation: popIn .55s ease both, softGlow 2.8s ease-in-out infinite;
-    }
+  min-width:min(440px, 92vw);
+  max-width:780px;
+  font-family:"Roboto Condensed", sans-serif;
+
+  position: relative;
+  overflow: hidden;
+
+  animation: popIn .55s ease both, softGlow 2.8s ease-in-out infinite;
+}
 
     /* ✅ ТЁМНО-РОЗОВАЯ ПОДЛОЖКА ПОД ТЕКСТ (чтобы не сливалось) */
     .overlay-content::before{
